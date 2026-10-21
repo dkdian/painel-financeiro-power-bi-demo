@@ -1,0 +1,32 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: pt-BR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["ControleFinanceiro","dCategoriasGrafico","Receita_Competencia_Manual","dParametros","dEstruturaDRE","Estrutura_DFC"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling"]
+
+ref table ControleFinanceiro
+ref table DateTableTemplate_904f69ed-833c-446c-bbbb-e0c6f8b1fe55
+ref table dCategoriasGrafico
+ref table Receita_Competencia_Manual
+ref table LocalDateTable_cadeff0f-fb67-4213-a59c-797c86f37cb0
+ref table dParametros
+ref table dEstruturaDRE
+ref table Estrutura_DFC
+ref table dCalendario
+ref table 'Análise DRE'
+ref table dGrupoPessoal
+ref table dEixoMes
+ref table dColunasDRE
+
+ref cultureInfo pt-BR
+

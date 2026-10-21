@@ -1,0 +1,121 @@
+table Estrutura_DFC
+	lineageTag: 9e2fed39-20e9-4a1f-81dd-1c15c1271833
+
+	measure Valor_DFC = ```
+			
+			VAR LinhaSelecionada = SELECTEDVALUE(Estrutura_DFC[ID])
+			
+			-- Saldo de caixa:
+			--   sem recorte  -> caixa da empresa: saldo do dia zero + fluxo acumulado antes do período
+			--   com recorte de cozinha ou cliente/fornecedor -> caixa gerado por aquele recorte desde o início
+			--   (cozinha não tem conta bancária, então o saldo do dia zero não entra).
+			-- Em todas as colunas vale: Saldo Final = Saldo Inicial + Saldo Líquido.
+			VAR _Recorte = ISFILTERED( ControleFinanceiro[C. C.] ) || ISFILTERED( ControleFinanceiro[  Fornecedor/ Cliente] )
+			
+			VAR _Recebimentos = [Receita_Operacional] + [Receita_Financeira]
+			VAR _Pagamentos = [Tributo] + [Custo_Operacional] + [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial] + [Despesa_Financeira]
+			VAR _Operacional = _Recebimentos + _Pagamentos
+			
+			-- Espelha a fórmula da coluna Saldo em Controle FinanceiroV2.xlsx:
+			-- venda de ativo é marcada em [Detalhamento/Categoria II], nunca em [Descrição].
+			VAR _Aquisicao =
+			    CALCULATE(
+			        SUM( ControleFinanceiro[Valor] ),
+			        ControleFinanceiro[Categoria] = "Investimento",
+			        ControleFinanceiro[Detalhamento/Categoria II] <> "Venda de Ativo Imobilizado"
+			    ) * -1
+			VAR _Venda =
+			    CALCULATE(
+			        SUM( ControleFinanceiro[Valor] ),
+			        ControleFinanceiro[Categoria] = "Investimento",
+			        ControleFinanceiro[Detalhamento/Categoria II] = "Venda de Ativo Imobilizado"
+			    )
+			VAR _Investimentos = _Aquisicao + _Venda
+			
+			VAR _Aportes = CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Aporte")
+			VAR _Retiradas = CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Retirada") * -1
+			VAR _EntradaSaida = 
+			    CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Entrada") + 
+			    (CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Saída") * -1)
+			VAR _Financiamentos = _Aportes + _Retiradas + _EntradaSaida
+			
+			VAR _SaldoLiquido = [Fluxo_Caixa_Liquido]
+			
+			-- Início do período vem do calendário (segmentador de Período), não do primeiro lançamento:
+			-- assim uma cozinha sem lançamento no período ainda mostra o saldo acumulado.
+			VAR _InicioPeriodo = MIN( dCalendario[Date] )
+			VAR _SaldoDiaZero = 
+			    CALCULATE( 
+			        SUM( dParametros[Valor] ), 
+			        dParametros[Parametro] = "SaldoDiaZero" 
+			    )
+			
+			VAR _SaldoInicial = 
+			    IF( _Recorte, 0, _SaldoDiaZero ) + 
+			    CALCULATE(
+			        [Fluxo_Caixa_Liquido],
+			        FILTER(
+			            ALL(dCalendario[Date]),
+			            dCalendario[Date] < _InicioPeriodo
+			        )
+			    )
+			    
+			VAR _SaldoFinal = _SaldoInicial + _SaldoLiquido
+			
+			RETURN
+			    SWITCH(
+			        LinhaSelecionada,
+			        1, _SaldoInicial,
+			        2, _Recebimentos,
+			        3, _Pagamentos,
+			        4, _Operacional,
+			        5, _Aquisicao,
+			        6, _Venda,
+			        7, _Investimentos,
+			        8, _Aportes,
+			        9, _Retiradas,
+			        10, _EntradaSaida, 
+			        11, _Financiamentos,
+			        12, _SaldoLiquido,
+			        13, _SaldoFinal,
+			        BLANK()
+			    )
+			```
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 623455a9-4702-4b4d-981d-dc230c9b0992
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	column ID
+		dataType: int64
+		formatString: 0
+		lineageTag: a618d5d4-fc5b-4139-ab21-2f43c0070e6f
+		summarizeBy: count
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Linha_DFC
+		dataType: string
+		lineageTag: 25398e4e-8582-4db3-b5e4-fdbdd054566a
+		summarizeBy: none
+		sourceColumn: Linha_DFC
+		sortByColumn: ID
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Estrutura_DFC = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("hVHBagIxEP2VkJOLKzba2nroYSkVBEFxoZfFw3QzyIBN7CaK/9NDT37F/liTTZCAC70N772Z93hTVVzwnJdwkJotFdUEByaRvQFdgO/yik8cPRhmbIs1ftIXKqtNR0w9McrYBvaQwI8efs1YYelMEiQatj5iAzVpBRQ0T3G1+D6Rofa3/dHe1K9ow9AFOaOxqdkspvhAJeEf7fN9Atmne4k3i6NuLAZsHpNt0VIDEgIqHjrp2BHvynp8XEJ7laEhIXoNF6RAuT4TRzGJytD3qr26AtzgfJLlIJ3e3uIPpU/Z/QE=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [ID = _t, Linha_DFC = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"ID", Int64.Type}, {"Linha_DFC", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

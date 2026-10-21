@@ -1,0 +1,313 @@
+table dEstruturaDRE
+	lineageTag: 5c271f5c-251f-4631-b61d-0773273f69ad
+
+	measure Valor_DRE_Alt =
+			
+			VAR LinhaSelecionada = SELECTEDVALUE(dEstruturaDRE[ID])
+			VAR VisaoAtual = SELECTEDVALUE(dEstruturaDRE[Visão])
+			
+			VAR _Receita = [Receita_Operacional] + [Receita_Financeira]
+			VAR _DespVar = [Tributo]
+			VAR _CMV = [Custo_Operacional]
+			VAR _DespFixa = [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial] + [Despesa_Financeira]
+			
+			RETURN
+			    IF(
+			        VisaoAtual = "Alt",
+			        SWITCH(
+			            LinhaSelecionada,
+			            1, _Receita,
+			            2, _DespVar,
+			            3, _CMV,
+			            4, _DespFixa,
+			            5, _Receita + _DespVar + _CMV + _DespFixa,
+			            BLANK()
+			        ),
+			        BLANK()
+			    )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 00769886-6486-4758-89c4-ee1f5a609372
+
+	measure Valor_DRE =
+			
+			-- Seleciona a linha pelo ID numérico (mais barato que comparar texto em cada célula).
+			-- IDs da visão Standard: 1 Receita Op … 13 Resultado (ver dEstruturaDRE).
+			VAR _Id = SELECTEDVALUE( dEstruturaDRE[ID] )
+			RETURN
+			    IF( _Id <> BLANK() && SELECTEDVALUE( dEstruturaDRE[Visão] ) = "Standard",
+			        VAR _Det = ISINSCOPE( ControleFinanceiro[Detalhamento/Categoria II] )
+			        RETURN SWITCH( _Id,
+			            1, [Receita_Operacional],
+			            2, [Tributo],
+			            3, IF( _Det, BLANK(), [Receita_Liquida] ),
+			            4, [Custo_Operacional],
+			            5, IF( _Det, BLANK(), [Lucro_Bruto] ),
+			            6, [Despesa_Fixa],
+			            7, [Despesa_Variavel],
+			            8, [Despesa_Pessoal],
+			            9, [Marketing_Comercial],
+			            10, IF( _Det, BLANK(), [Lucro_Operacional] ),
+			            11, [Receita_Financeira],
+			            12, [Despesa_Financeira],
+			            13, IF( _Det, BLANK(), [Resultado_Exercicio] ) ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 3ab65620-fb18-4140-9621-60759df8a489
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure Valor_DRE_CC =
+			
+			VAR LinhaSelecionada = SELECTEDVALUE(dEstruturaDRE[Linha])
+			VAR VisaoAtual = SELECTEDVALUE(dEstruturaDRE[Visão])
+			VAR NivelDetalhe = ISINSCOPE(ControleFinanceiro[Detalhamento/Categoria II])
+			
+			-- Rateio do ADM igual ao da aba Gráficos do Controle Financeiro (linhas 123 e 128):
+			-- mês a mês, pela participação da cozinha na receita do mês.
+			-- Tributo do ADM vai para a linha (-) Tributo; o resto do gasto do ADM
+			-- (inclusive Investimento, sem Receita Financeira) vai para Despesa Fixa Administrativa.
+			VAR _Meses =
+			    ADDCOLUMNS(
+			        VALUES( dCalendario[Ano_Mês_Num] ),
+			        "@Part", DIVIDE(
+			            CALCULATE( [Receita_Operacional], REMOVEFILTERS( ControleFinanceiro[Detalhamento/Categoria II] ) ),
+			            CALCULATE( [Receita_Operacional], ALL( ControleFinanceiro[C. C.] ), REMOVEFILTERS( ControleFinanceiro[Detalhamento/Categoria II] ) )
+			        ),
+			        "@TributoADM", CALCULATE( [Tributo], ALL( ControleFinanceiro[C. C.] ), ControleFinanceiro[C. C.] = "ADM" ),
+			        "@GastoADM", CALCULATE(
+			            [Custo_Operacional] + [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial] + [Despesa_Financeira]
+			                - CALCULATE( [Valor_Total], ControleFinanceiro[Categoria] = "Investimento" ),
+			            ALL( ControleFinanceiro[C. C.] ), ControleFinanceiro[C. C.] = "ADM"
+			        )
+			    )
+			VAR _TributoRateado = SUMX( _Meses, [@Part] * [@TributoADM] )
+			VAR _DespFixaAdmRateada = SUMX( _Meses, [@Part] * [@GastoADM] )
+			VAR _Tributo = [Tributo] + _TributoRateado
+			VAR _ReceitaLiquida = [Receita_Operacional] + _Tributo
+			VAR _LucroBruto = _ReceitaLiquida + [Custo_Operacional]
+			VAR _LucroOperacional = _LucroBruto + [Despesa_Fixa] + _DespFixaAdmRateada + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial]
+			VAR _Resultado = _LucroOperacional + [Receita_Financeira] + [Despesa_Financeira]
+			
+			RETURN
+			    IF(
+			        VisaoAtual = "CC",
+			        SWITCH(
+			            TRUE(),
+			            LinhaSelecionada = "(+) Receita Operacional", [Receita_Operacional],
+			            LinhaSelecionada = "(-) Tributo", _Tributo,
+			            LinhaSelecionada = "(=) Receita Líquida", IF(NivelDetalhe, BLANK(), _ReceitaLiquida),
+			            LinhaSelecionada = "(-) Custo Operacional", [Custo_Operacional],
+			            LinhaSelecionada = "(=) Lucro Bruto", IF(NivelDetalhe, BLANK(), _LucroBruto),
+			            LinhaSelecionada = "(-) Despesa Fixa", [Despesa_Fixa],
+			            LinhaSelecionada = "(-) Despesa Fixa Administrativa", _DespFixaAdmRateada,
+			            LinhaSelecionada = "(-) Despesa Variável", [Despesa_Variavel],
+			            LinhaSelecionada = "(-) Despesa com Pessoal", [Despesa_Pessoal],
+			            LinhaSelecionada = "(-) Marketing/Comercial", [Marketing_Comercial],
+			            LinhaSelecionada = "(=) Lucro Operacional", IF(NivelDetalhe, BLANK(), _LucroOperacional),
+			            LinhaSelecionada = "(+) Receita Financeira", [Receita_Financeira],
+			            LinhaSelecionada = "(-) Despesa Financeira", [Despesa_Financeira],
+			            LinhaSelecionada = "(=) Resultado do Exercício", IF(NivelDetalhe, BLANK(), _Resultado),
+			            BLANK()
+			        ),
+			        BLANK()
+			    )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: b5cdf777-1c4b-4ae9-8fae-1ed1223dc612
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure É_Subtotal =
+			
+			VAR LinhaAtual = SELECTEDVALUE(dEstruturaDRE[Linha])
+			RETURN IF(
+			    LinhaAtual IN {
+			        "(=) Lucro Bruto",
+			        "(=) Lucro Operacional",
+			        "(=) Resultado do Exercício",
+			        "(=) Receita Líquida"
+			    },
+			    1,
+			    0
+			)
+		formatString: 0
+		lineageTag: 14a77d66-c093-486f-92d4-2d0877f6995c
+
+	/// T01 coluna Mes = item Total do grupo Analise DRE.
+	measure DRE_Mes_Valor = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "Total" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 5eac3da6-27a6-483a-b73f-005ebe3830d1
+
+	/// T01 coluna % (sem sinal, como no relatorio entregue).
+	measure DRE_Mes_Pct = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "%" )
+		formatString: 0.0%;0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 214ab356-916b-472d-b43b-b53b38e9d4c5
+
+	/// T01 coluna Media 6 meses.
+	measure DRE_6M_Media = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "Média 6M" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 62b4ee45-2834-4f38-9c08-7d95badf711c
+
+	/// T01 coluna % 6 meses.
+	measure DRE_6M_Pct = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "% 6M" )
+		formatString: 0.0%;0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 1c12a7fe-0b8e-42d4-960b-7ccdcce06ed2
+
+	/// T02 coluna Mes.
+	measure DREAlt_Mes_Valor = CALCULATE( [Valor_DRE_Alt], 'Análise DRE'[Análise DRE] = "Total" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: efe82418-bc60-4159-a1c1-43d6f21fdcfc
+
+	/// T02 coluna %.
+	measure DREAlt_Mes_Pct = CALCULATE( [Valor_DRE_Alt], 'Análise DRE'[Análise DRE] = "%" )
+		formatString: 0.0%;0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 15d30872-8ab8-4377-bff1-542a1272c6f7
+
+	/// T02 coluna Media 3 meses.
+	measure DREAlt_3M_Media = CALCULATE( [Valor_DRE_Alt], 'Análise DRE'[Análise DRE] = "Média 3M" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: e7d80681-b3ad-45f8-a02b-e0d2c5f0f41d
+
+	/// T02 coluna % 3 meses.
+	measure DREAlt_3M_Pct = CALCULATE( [Valor_DRE_Alt], 'Análise DRE'[Análise DRE] = "% 3M" )
+		formatString: 0.0%;0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 2beb3120-bd69-4b70-8500-0863a0555a22
+
+	/// T04 coluna Ano. Valor_DRE do ano ate o mes mais recente com lancamento (nunca DATESYTD puro: o calendario vai ate dez/2026 sem dados, regra 5 do plano).
+	measure DRE_Ano_Valor =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			RETURN
+			    CALCULATE(
+			        [Valor_DRE],
+			        DATESBETWEEN( dCalendario[Date], DATE( YEAR( _RefData ), 1, 1 ), _RefData )
+			    )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 2b0e7495-8d41-4265-8a84-d6e7a6add26d
+
+	/// T04 coluna Media 12 meses.
+	measure DRE_Ano_Media12M = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "Média 12M" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 06dd201d-29ac-4a75-9b50-62b9c261c17a
+
+	/// T04 coluna % 12 meses.
+	measure DRE_Ano_Pct12M = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "% 12M" )
+		formatString: 0.0%;0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 8d77d4da-cb77-4e45-8761-6f70bead6166
+
+	/// Valor de cada coluna da matriz DRE (colunas de dColunasDRE): meses reais e Total, %, médias. Usa as medidas DRE_* existentes; respeita o filtro de Período.
+	measure DRE_Valor_Coluna =
+			VAR _col = SELECTEDVALUE ( dColunasDRE[Coluna] )
+			VAR _tipo = SELECTEDVALUE ( dColunasDRE[Tipo] )
+			VAR _num = SELECTEDVALUE ( dColunasDRE[AnoMes] )
+			RETURN
+			    IF (
+			        ISBLANK ( _col ),
+			        BLANK (),
+			        IF (
+			            _tipo = "Mês",
+			            CALCULATE ( [Valor_DRE], dCalendario[Ano_Mês_Num] = _num ),
+			            SWITCH (
+			                _col,
+			                "Total", [DRE_Mes_Valor],
+			                "%", [DRE_Mes_Pct],
+			                "Média 3M", [DRE_3M_Media],
+			                "% 3M", [DRE_3M_Pct],
+			                "Média 6M", [DRE_6M_Media],
+			                "% 6M", [DRE_6M_Pct],
+			                "Média 12M", [DRE_Ano_Media12M],
+			                "% 12M", [DRE_Ano_Pct12M]
+			            )
+			        )
+			    )
+		lineageTag: 3089161d-9826-4018-a01a-3ec4b4377c31
+
+		formatStringDefinition =
+				IF (
+				    SELECTEDVALUE ( dColunasDRE[Coluna] ) IN { "%", "% 3M", "% 6M", "% 12M" },
+				    "0.00%;-0.00%;0.00%",
+				    """R$""\ #,0.00;-""R$""\ #,0.00;""R$""\ #,0.00"
+				)
+
+	/// Valor de cada coluna da matriz DRE Alternativa (colunas de dColunasDRE): meses reais e Total, %, médias. Mesma lógica de DRE_Valor_Coluna, sobre Valor_DRE_Alt; respeita o filtro de Período.
+	measure DRE_Valor_Coluna_Alt =
+			VAR _col = SELECTEDVALUE ( dColunasDRE[Coluna] )
+			VAR _tipo = SELECTEDVALUE ( dColunasDRE[Tipo] )
+			VAR _num = SELECTEDVALUE ( dColunasDRE[AnoMes] )
+			RETURN
+			    IF (
+			        ISBLANK ( _col ),
+			        BLANK (),
+			        IF (
+			            _tipo = "Mês",
+			            CALCULATE ( [Valor_DRE_Alt], dCalendario[Ano_Mês_Num] = _num ),
+			            CALCULATE ( [Valor_DRE_Alt], 'Análise DRE'[Análise DRE] = _col )
+			        )
+			    )
+		lineageTag: 2e63e6c4-ae9f-465a-8eb7-acb97f9173aa
+
+		formatStringDefinition =
+				IF (
+				    SELECTEDVALUE ( dColunasDRE[Coluna] ) IN { "%", "% 3M", "% 6M", "% 12M" },
+				    "0.00%;-0.00%;0.00%",
+				    """R$""\ #,0.00;-""R$""\ #,0.00;""R$""\ #,0.00"
+				)
+
+	column ID
+		dataType: int64
+		formatString: 0
+		lineageTag: 5c9fedf4-ff20-4994-8853-dc29162b243a
+		summarizeBy: count
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Linha
+		dataType: string
+		lineageTag: d2aeb8e1-2de0-4d4c-b736-36ee5125a77f
+		summarizeBy: none
+		sourceColumn: Linha
+		sortByColumn: Ordem
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Visão
+		dataType: string
+		lineageTag: 09deaab9-f165-4969-97c9-443a8a1347fb
+		summarizeBy: none
+		sourceColumn: Visão
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: int64
+		formatString: 0
+		lineageTag: f51b72de-9e66-47fd-80da-94225b83ef14
+		summarizeBy: sum
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dEstruturaDRE = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("jZJLbsIwEECvYmVVVPoJfxZd0LSsQK1KxQaxcBOrshpiajuI6/QAnIKL1fG4iWNwqJSFlXnzseetVkEYtIOr6xZ6IzGhEqOXLeE4pizDqYosJM4SzBN1DO+DdXsVdAr+poXeOf3IJaszHWC6BfNQ1ZwdD985TXAd7gLcMwWjXEjmb98Dum9Kz/KYM/TIT0boAzcwVZ+I2BKB0ZTunfYDAIcOuMScHn92xGk/BHrk0DHboFciBHPHHQE/Nvwc8y8iafZ5F7EN4TF1+THw6pHt+zUsw/Du+qY0w5k6cue2oVlf2Dl5GE+C2WVYLVPkqcQJQ+p73qtLHA9qNCfLLLXZqihq8klHL5uksX84pLlGezTR7I1GPMYUCJokG5pRITmWdFdl9M9aYzumuWHdlvN2aXJke+IVS6NjWxGPUmYTths+mQANbSt8GgH6J1DvokDAW+qYAdRpksq6K0XD29oLAmIJE82X5W9LEMg0C4WopUU5XRksjFj/Ag==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [ID = _t, Linha = _t, Visão = _t, Ordem = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"ID", Int64.Type}, {"Linha", type text}, {"Visão", type text}, {"Ordem", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

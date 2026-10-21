@@ -1,0 +1,1139 @@
+table ControleFinanceiro
+	lineageTag: baf84e7b-f827-44e8-acb4-37d9e8d8bea1
+
+	measure Valor_Total = SUM(ControleFinanceiro[Valor])
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 432a6211-5cee-4068-acc1-cda69c75b5d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Receita_Operacional = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Operacional")
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: dd0a0e23-c7cd-4b5d-97ab-54fe82692da6
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure Despesa_Variavel = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Despesa.Variável") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 849e5027-b4fc-4de1-855e-71d6446e4144
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Tributo = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Tributo") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 25ab82e6-36d8-4bae-af15-61860d1e5470
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Despesa_Fixa = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Despesa.Fixa") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: c43d84f9-a24e-4a5c-8c24-89c6d405cd2e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Despesa_Pessoal = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Despesa.com.Pessoal") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: ebfca3b3-5adc-4f5e-9f02-8186a242854c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Marketing_Comercial = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Marketing.Comercial") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 341e3348-b3b0-48b0-ace9-0c6575783f24
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Receita_Financeira = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Receita.Financeira")
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: a2eb991d-ee91-4603-9476-f6cf6a7a86c9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Despesa_Financeira = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Despesa.Financeira") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 2f073853-91a6-4588-a320-ac1b3aad8bf2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Receita_Liquida = [Receita_Operacional] + [Tributo]
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 59df43fd-8cac-4c97-b84b-1444a09c4bce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Lucro_Bruto = [Receita_Liquida] + [Custo_Operacional]
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 432dde1c-1f05-46a8-b9fb-ad51d0298148
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Lucro_Operacional = [Lucro_Bruto] + [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial]
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: aebabbf7-9662-4063-9220-cf2b9ba93348
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Resultado_Exercicio = [Lucro_Operacional] + [Receita_Financeira] + [Despesa_Financeira]
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: ec3a72fe-3a61-4c2d-8722-f1671a37f6f8
+
+		annotation PBI_FormatHint = {"currencyCulture":"pt-BR"}
+
+	measure Margem_Contribuicao = DIVIDE([Lucro_Operacional], [Receita_Operacional], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 0cbb5a54-6fae-48ab-bb0e-7a2e1b6d42f1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Markup = DIVIDE([Receita_Operacional], ABS([Custo_Operacional]), 0)
+		formatString: #,0.00"x";-#,0.00"x";0.00"x"
+		lineageTag: feb6ae6b-deb4-44ca-8bbe-b3a6826ad2cc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Receita_Variacao_MoM = ```
+			
+			VAR ReceitaAtual = [Receita_Operacional]
+			VAR ReceitaMesAnterior = 
+			    CALCULATE(
+			        [Receita_Operacional],
+			        DATEADD( dCalendario[Date], -1, MONTH )
+			    )
+			RETURN 
+			    DIVIDE(ReceitaAtual - ReceitaMesAnterior, ReceitaMesAnterior, 0)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: d8d4040c-8f64-4e65-b9a4-09344ba5c185
+
+	measure Plot_Resultado_Acumulado =
+			
+			CALCULATE(
+			    [Resultado_Exercicio],
+			    DATESYTD( dCalendario[Date] )
+			)
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: f615e09b-f0c3-4ac1-b8c0-0e55ab45f743
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Plot_Rótulo_MinMax =
+			
+			VAR _MesAtual = SELECTEDVALUE( dCalendario[Ano_Mês_Num] )
+			
+			VAR _TabelaMeses =
+			    FILTER(
+			        ADDCOLUMNS(
+			            ALLSELECTED( dCalendario[Ano_Mês_Num], dCalendario[Ano_Mês] ),
+			            "@Acumulado", [Plot_Resultado_Acumulado]
+			        ),
+			        NOT ISBLANK( [@Acumulado] )
+			    )
+			
+			VAR _MesDoMaximo = MAXX( TOPN( 1, _TabelaMeses, [@Acumulado], DESC ), dCalendario[Ano_Mês_Num] )
+			VAR _MesDoMinimo = MAXX( TOPN( 1, _TabelaMeses, [@Acumulado], ASC  ), dCalendario[Ano_Mês_Num] )
+			
+			RETURN
+			    IF(
+			        _MesAtual = _MesDoMaximo || _MesAtual = _MesDoMinimo,
+			        [Plot_Resultado_Acumulado],
+			        BLANK()
+			    )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: bddd32ac-6251-468a-a24f-048242040d87
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Fluxo_Caixa_Liquido = ```
+			
+			VAR _Operacional = ([Receita_Operacional] + [Receita_Financeira]) + ([Tributo] + [Custo_Operacional] + [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial] + [Despesa_Financeira])
+			
+			-- Espelha a fórmula da coluna Saldo: venda de ativo marcada em [Detalhamento/Categoria II].
+			VAR _Investimentos = 
+			    CALCULATE(
+			        SUM(ControleFinanceiro[Valor]),
+			        ControleFinanceiro[Categoria] = "Investimento",
+			        ControleFinanceiro[Detalhamento/Categoria II] <> "Venda de Ativo Imobilizado"
+			    ) * -1 +
+			    CALCULATE(
+			        SUM(ControleFinanceiro[Valor]),
+			        ControleFinanceiro[Categoria] = "Investimento",
+			        ControleFinanceiro[Detalhamento/Categoria II] = "Venda de Ativo Imobilizado"
+			    )
+			
+			VAR _Financiamentos = 
+			    CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Aporte") +
+			    (CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Retirada") * -1) +
+			    CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Entrada") +
+			    (CALCULATE(SUM(ControleFinanceiro[Valor]), ControleFinanceiro[Categoria] = "Saída") * -1)
+			
+			RETURN 
+			    _Operacional + _Investimentos + _Financiamentos
+			```
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: adac88cc-5d02-4b74-8d8d-ff477afb5864
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Custo_Operacional = CALCULATE([Valor_Total], ControleFinanceiro[Categoria] = "Custo.Operacional") * -1
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 871389f4-0816-4963-8dbd-cc338caf2c4b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Custo operacional (caixa) sobre receita por competência do mesmo ano-mês. Só faz sentido por mês; vazio no total. Gráfico 6.
+	measure Custo_sobre_Receita_Competencia =
+			
+			VAR _AnoMes = SELECTEDVALUE( dCalendario[Ano_Mês_Num] )
+			VAR _ReceitaComp =
+			    CALCULATE(
+			        SUM( Receita_Competencia_Manual[Valor_Competencia] ),
+			        FILTER(
+			            ALL( Receita_Competencia_Manual ),
+			            YEAR( Receita_Competencia_Manual[Data_Competencia] ) * 100
+			                + MONTH( Receita_Competencia_Manual[Data_Competencia] ) = _AnoMes
+			        )
+			    )
+			RETURN
+			    DIVIDE( -[Custo_Operacional], _ReceitaComp )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 0f02d031-69a5-4c71-81fa-7732cccf4525
+
+	/// Subtitulo dinamico dos visuais: 'Dezembro/2025' para um mes, 'Janeiro/2025 a Dezembro/2025' para varios. Ancorado em ControleFinanceiro[Realiz.] (nao no calendario).
+	measure Rotulo_Periodo =
+			VAR _Ini = MIN ( ControleFinanceiro[Realiz.] )
+			VAR _Fim = MAX ( ControleFinanceiro[Realiz.] )
+			VAR _TxtIni =
+			    UPPER ( LEFT ( FORMAT ( _Ini, "mmmm", "pt-BR" ), 1 ) ) & MID ( FORMAT ( _Ini, "mmmm", "pt-BR" ), 2, 20 ) & "/" & YEAR ( _Ini )
+			VAR _TxtFim =
+			    UPPER ( LEFT ( FORMAT ( _Fim, "mmmm", "pt-BR" ), 1 ) ) & MID ( FORMAT ( _Fim, "mmmm", "pt-BR" ), 2, 20 ) & "/" & YEAR ( _Fim )
+			RETURN
+			    IF ( ISBLANK ( _Fim ), BLANK (), IF ( _TxtIni = _TxtFim, _TxtIni, _TxtIni & " a " & _TxtFim ) )
+		lineageTag: fe3e9409-ab45-439f-a3fa-8dfebf413bae
+
+	/// Receita por competencia do mes em contexto (Receita_Competencia_Manual). Vazio se nao houver valor. Ancorado em dCalendario[Ano_Mês_Num] como Custo_sobre_Receita_Competencia.
+	measure Receita_Competencia =
+			VAR _AnoMes = SELECTEDVALUE( dCalendario[Ano_Mês_Num] )
+			VAR _Valor =
+			    CALCULATE(
+			        SUM( Receita_Competencia_Manual[Valor_Competencia] ),
+			        FILTER(
+			            ALL( Receita_Competencia_Manual ),
+			            YEAR( Receita_Competencia_Manual[Data_Competencia] ) * 100
+			                + MONTH( Receita_Competencia_Manual[Data_Competencia] ) = _AnoMes
+			        )
+			    )
+			RETURN
+			    IF( _Valor > 0, _Valor )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 82a38991-42f4-425d-80ae-c431ffe2e41c
+
+	/// 1 se o mes em contexto tem receita por competencia lancada, 0 se nao. Usado pelo gerador para decidir o texto automatico.
+	measure Competencia_Disponivel = IF( NOT ISBLANK( [Receita_Competencia] ), 1, 0 )
+		formatString: 0
+		displayFolder: Relatorio
+		lineageTag: 87f1065a-29bb-4dd9-8b8a-9a7985555cd9
+
+	/// Markup do mes = Receita por competencia / Custo operacional (definicao do Excel, Graficos!C28). Vazio sem competencia.
+	measure Markup_Competencia = DIVIDE( [Receita_Competencia], ABS( [Custo_Operacional] ) )
+		formatString: #,0.00"x";-#,0.00"x";0.00"x"
+		displayFolder: Relatorio
+		lineageTag: f7b04fc0-6d3b-4270-a062-352ce8e10fa4
+
+	/// Media ponderada movel (soma competencia / soma custo) dos 6 meses que terminam no mes em contexto (Realiz.). So conta meses com competencia lancada. Equivale a Graficos!B28 do Excel.
+	measure Markup_Competencia_6M =
+			VAR _Fim = EOMONTH( MAX( ControleFinanceiro[Realiz.] ), 0 )
+			VAR _Ini = EDATE( EOMONTH( _Fim, -1 ) + 1, -5 )
+			VAR _Meses =
+			    CALCULATETABLE(
+			        VALUES( dCalendario[Ano_Mês_Num] ),
+			        REMOVEFILTERS( dCalendario ),
+			        dCalendario[Date] >= _Ini,
+			        dCalendario[Date] <= _Fim
+			    )
+			VAR _Tab =
+			    ADDCOLUMNS(
+			        _Meses,
+			        "@Comp",
+			            VAR _m = dCalendario[Ano_Mês_Num]
+			            RETURN
+			                CALCULATE(
+			                    SUM( Receita_Competencia_Manual[Valor_Competencia] ),
+			                    FILTER(
+			                        ALL( Receita_Competencia_Manual ),
+			                        YEAR( Receita_Competencia_Manual[Data_Competencia] ) * 100
+			                            + MONTH( Receita_Competencia_Manual[Data_Competencia] ) = _m
+			                    )
+			                ),
+			        "@Custo",
+			            VAR _m = dCalendario[Ano_Mês_Num]
+			            RETURN
+			                CALCULATE(
+			                    ABS( [Custo_Operacional] ),
+			                    REMOVEFILTERS( dCalendario ),
+			                    dCalendario[Ano_Mês_Num] = _m
+			                )
+			    )
+			VAR _Valida = FILTER( _Tab, [@Comp] > 0 )
+			RETURN
+			    DIVIDE( SUMX( _Valida, [@Comp] ), SUMX( _Valida, [@Custo] ) )
+		formatString: #,0.00"x";-#,0.00"x";0.00"x"
+		displayFolder: Relatorio
+		lineageTag: 6fa32d14-ebd6-4572-a94b-c253ff2225c7
+
+	/// Despesa_Pessoal do grupo Salários (Salários + Bonificações), via dGrupoPessoal.
+	measure Pessoal_Salarios = CALCULATE( [Despesa_Pessoal], dGrupoPessoal[Grupo] = "Salários" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 5c872c3e-99d9-4307-a98a-46aee840399c
+
+	/// Despesa_Pessoal do grupo Encargos (Encargos + Provisões), via dGrupoPessoal.
+	measure Pessoal_Encargos = CALCULATE( [Despesa_Pessoal], dGrupoPessoal[Grupo] = "Encargos" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: df1baf8e-cc1c-4a3c-a4e3-4fc0d8fa7c30
+
+	/// Residual: Despesa_Pessoal - Salários - Encargos. Garante que os 3 grupos sempre somam Despesa_Pessoal; inclui subcategoria não mapeada.
+	measure Pessoal_Outros = [Despesa_Pessoal] - [Pessoal_Salarios] - [Pessoal_Encargos]
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: cf6e21d9-1ce0-40c7-9ce9-4dfae5ff7fdd
+
+	/// Despesa_Pessoal em subcategorias sem linha em dGrupoPessoal. Diferente de zero vira alerta.
+	measure Pessoal_Nao_Mapeado = [Despesa_Pessoal] - CALCULATE( [Despesa_Pessoal], dGrupoPessoal[Grupo] IN { "Salários", "Encargos", "Outros" } )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 83160974-af3f-4cc5-a0b6-97166d057841
+
+	/// Total de Gasto do relatorio (positivo) = Tributo + Custo + Fixa + Variavel + Pessoal + Marketing + Despesa Financeira. Mesma definicao do v4 (total_gasto).
+	measure Gasto_Total = -( [Tributo] + [Custo_Operacional] + [Despesa_Fixa] + [Despesa_Variavel] + [Despesa_Pessoal] + [Marketing_Comercial] + [Despesa_Financeira] )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: d14c1105-0263-4567-8c27-a0977392bb2a
+
+	/// Conferencia: soma dos grupos de Pessoal menos Despesa_Pessoal. Deve ser 0.
+	measure Chk_Pessoal = ROUND( [Pessoal_Salarios] + [Pessoal_Encargos] + [Pessoal_Outros] - [Despesa_Pessoal], 2 ) + ROUND( [Pessoal_Nao_Mapeado], 2 )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Chk
+		lineageTag: 887b59f9-6ff8-4493-ab2b-daa1512bbe40
+
+	/// Conferencia: valor de linhas sem Categoria ou com Categoria fora da lista conhecida (13 categorias). Deve ser 0.
+	measure Chk_Sem_Categoria =
+			CALCULATE(
+			    SUM( ControleFinanceiro[Valor] ),
+			    NOT( ControleFinanceiro[Categoria] IN {
+			        "Operacional", "Custo.Operacional", "Tributo", "Despesa.Fixa", "Despesa.Variável",
+			        "Despesa.com.Pessoal", "Marketing.Comercial", "Receita.Financeira", "Despesa.Financeira",
+			        "Entrada", "Saída", "Investimento", "Retirada"
+			    } )
+			)
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Chk
+		lineageTag: de459e9f-d836-4401-8548-6b16f00b67f6
+
+	/// Conferencia: 1 se ha competencia lancada no mes, 0 se nao (alerta).
+	measure Chk_Competencia = [Competencia_Disponivel]
+		formatString: 0
+		displayFolder: Chk
+		lineageTag: 7268b0d5-76e6-421d-ac58-211b8bdbe7c8
+
+	/// DFC: Categoria=Investimento que NAO e venda de ativo (Detalhamento diferente de 'Venda de Ativo Imobilizado'), em positivo. Mesma regra da coluna Saldo da planilha e da linha 5 do Valor_DFC. (Corrigido em 29/09/2026: antes usava o sinal do Valor, que erra quando a venda e lancada com Valor positivo.)
+	measure Aquisicao_Ativos =
+			CALCULATE(
+			    SUM( ControleFinanceiro[Valor] ),
+			    ControleFinanceiro[Categoria] = "Investimento",
+			    ControleFinanceiro[Detalhamento/Categoria II] <> "Venda de Ativo Imobilizado"
+			)
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 8cefbb08-ce06-4d39-8a5a-41e0b76359b1
+
+	/// DFC: Categoria=Investimento com Detalhamento 'Venda de Ativo Imobilizado', em positivo. Mesma regra da coluna Saldo da planilha e da linha 6 do Valor_DFC. (Corrigido em 29/09/2026: antes usava o sinal do Valor.)
+	measure Venda_Ativos =
+			CALCULATE(
+			    SUM( ControleFinanceiro[Valor] ),
+			    ControleFinanceiro[Categoria] = "Investimento",
+			    ControleFinanceiro[Detalhamento/Categoria II] = "Venda de Ativo Imobilizado"
+			)
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 9854e713-b407-46ff-bb6a-673ffe012454
+
+	/// Retirada do sócio no mês (Excel Gráficos!M26 = Aporte + Retirada do DFC), em positivo: Retirada - Aporte.
+	measure Retirada_Socio = CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Retirada" ) - CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Aporte" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: e17fe50b-b185-4ca9-9622-b177e13366de
+
+	/// Retirada do sócio nos 12 meses que terminam no mês em contexto (Realiz.). Excel: Gráficos!B26 = SUM(C26:N26).
+	measure Retirada_Socio_12M =
+			VAR _Fim = EOMONTH( MAX( ControleFinanceiro[Realiz.] ), 0 )
+			VAR _Ini = EDATE( EOMONTH( _Fim, -1 ) + 1, -11 )
+			RETURN
+			    CALCULATE(
+			        [Retirada_Socio],
+			        REMOVEFILTERS( dCalendario ),
+			        dCalendario[Date] >= _Ini,
+			        dCalendario[Date] <= _Fim
+			    )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 1fb3e5b6-ef3e-4d49-b1c0-b566b5dd3807
+
+	/// Media mensal = Retirada_Socio_12M / 12 (mesma regra do Excel e do v4; 'pro-labore medio' e so o nome, nao ha desconto).
+	measure Retirada_Socio_Media_12M = DIVIDE( [Retirada_Socio_12M], 12 )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 6a3dc17f-7dd2-4a2d-824b-becff073b6e9
+
+	/// G01. Receita Operacional no mes do eixo dEixoMes, so nos 12 meses que terminam no mes da segmentacao.
+	measure Eixo12M_Receita =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Receita_Operacional], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 96b76ba2-b8e6-4d24-a615-a6cd8d08b702
+
+	/// G01. Variacao da receita vs mes anterior no eixo de 12 meses. Vazio no primeiro mes com dados.
+	measure Eixo12M_Receita_MoM =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _Atual = CALCULATE( [Receita_Operacional], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M )
+			VAR _Ant =
+			    CALCULATE(
+			        [Receita_Operacional],
+			        REMOVEFILTERS( dCalendario ),
+			        FILTER( ALL( dCalendario[Ano], dCalendario[Mês_Num] ), dCalendario[Ano] * 12 + dCalendario[Mês_Num] = _I - 1 )
+			    )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref && NOT ISBLANK( _Ant ), DIVIDE( _Atual - _Ant, _Ant ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 9013cbac-c9dd-4ac3-837a-1e64e86d9de7
+
+	/// G01. Rotulo de texto: 'R$ 1,55M (+10,9%)'.
+	measure Eixo12M_Rotulo_Receita =
+			VAR _V = [Eixo12M_Receita]
+			VAR _P = [Eixo12M_Receita_MoM]
+			RETURN
+			    IF( NOT ISBLANK( _V ),
+			        "R$ " & FORMAT( _V / 1000000, "0.00", "pt-BR" ) & "M"
+			            & IF( NOT ISBLANK( _P ), " (" & FORMAT( _P, "+0.0%;-0.0%;0.0%", "pt-BR" ) & ")" ) )
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: d7e9b497-288f-4581-8848-b3805231f6bc
+
+	/// G04. Markup_Competencia no eixo de 12 meses. Vazio em mes sem competencia (D5).
+	measure Eixo12M_Markup =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Markup_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: #,0.00;-#,0.00;0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: c7941f2e-f4e1-4ebd-99d0-c268af8cf844
+
+	/// G04. Markup_Competencia_6M (ponderada movel) no eixo de 12 meses.
+	measure Eixo12M_Markup_6M =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Markup_Competencia_6M], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: #,0.00;-#,0.00;0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: a18decca-4698-4d6f-8804-5979af132266
+
+	/// G06. Custo_sobre_Receita_Competencia no eixo de 12 meses. Vazio em mes sem competencia.
+	measure Eixo12M_Custo_Competencia =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Custo_sobre_Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 416de704-4ba8-4428-920c-d4c1468b2bb5
+
+	/// G07. Resultado_Exercicio no eixo de 12 meses (colunas).
+	measure Eixo12M_Resultado =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Resultado_Exercicio], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: dfdaf521-eefa-4151-ae96-954e1de39563
+
+	/// G07. Resultado acumulado desde o inicio da janela de 12 meses ate o mes do eixo (linha).
+	measure Eixo12M_Resultado_Acumulado =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE(
+			            [Resultado_Exercicio],
+			            REMOVEFILTERS( dCalendario ),
+			            FILTER( ALL( dCalendario[Ano], dCalendario[Mês_Num] ),
+			                VAR _k = dCalendario[Ano] * 12 + dCalendario[Mês_Num]
+			                RETURN _k > _Ref - 12 && _k <= _I )
+			        ) )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 2ce87ac2-08d8-4026-b0fb-4bc35c2f1d9a
+
+	/// G07. Igual a Eixo12M_Resultado_Acumulado, mas so preenchido no mes de maior valor, no de menor valor e no mes mais recente da janela (para rotular so esses 3 pontos na linha, como o Excel). Serie auxiliar so para rotulo; a linha visivel usa Eixo12M_Resultado_Acumulado.
+	measure Eixo12M_Resultado_Acum_Rotulo =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _EmJanela = _I > _Ref - 12 && _I <= _Ref
+			VAR _Meses =
+			    FILTER(
+			        CALCULATETABLE( VALUES( dEixoMes[Eixo_Indice] ), ALL( dEixoMes ) ),
+			        dEixoMes[Eixo_Indice] > _Ref - 12 && dEixoMes[Eixo_Indice] <= _Ref
+			    )
+			VAR _Tab =
+			    ADDCOLUMNS(
+			        _Meses,
+			        "@Acum",
+			            VAR _idx = dEixoMes[Eixo_Indice]
+			            RETURN CALCULATE( [Eixo12M_Resultado_Acumulado], ALL( dEixoMes ), dEixoMes[Eixo_Indice] = _idx )
+			    )
+			VAR _MaxAcum = MAXX( _Tab, [@Acum] )
+			VAR _MinAcum = MINX( _Tab, [@Acum] )
+			VAR _ThisAcum = [Eixo12M_Resultado_Acumulado]
+			RETURN
+			    IF( _EmJanela && ( _ThisAcum = _MaxAcum || _ThisAcum = _MinAcum || _I = _Ref ), _ThisAcum )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 99f8909d-7726-4213-a0fa-7a3e6e27b1a2
+
+	/// Rotulo do periodo dos graficos de 12 meses (R01,R04,R06,R07): mes inicial ao mes final da janela (o final e o ultimo mes com Realiz. no contexto).
+	measure Rotulo_Janela_12M =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _PrimeiroData = MIN( ControleFinanceiro[Realiz.] )
+			VAR _PrimeiroIdx = YEAR( _PrimeiroData ) * 12 + MONTH( _PrimeiroData )
+			VAR _IniIdx = MAX( _Ref - 11, _PrimeiroIdx )
+			VAR _IniAno = INT( ( _IniIdx - 1 ) / 12 )
+			VAR _IniMes = _IniIdx - _IniAno * 12
+			VAR _IniData = DATE( _IniAno, _IniMes, 1 )
+			VAR _NomeIni = UPPER( LEFT( FORMAT( _IniData, "mmmm", "pt-BR" ), 1 ) ) & MID( FORMAT( _IniData, "mmmm", "pt-BR" ), 2, 20 ) & "/" & YEAR( _IniData )
+			VAR _NomeFim = UPPER( LEFT( FORMAT( _RefData, "mmmm", "pt-BR" ), 1 ) ) & MID( FORMAT( _RefData, "mmmm", "pt-BR" ), 2, 20 ) & "/" & YEAR( _RefData )
+			RETURN
+			    IF( ISBLANK( _RefData ), BLANK(), _NomeIni & " a " & _NomeFim & " (12 meses até " & _NomeFim & ")" )
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 17580423-1141-479b-8c88-ff9a76943487
+
+	/// Texto explicativo da pagina R00: o que cada tipo de visual esta mostrando, dado o(s) mes(es) escolhido(s) no segmentador.
+	measure Texto_Periodo_Analise =
+			"Período nas pizzas e tabelas: " & [Rotulo_Periodo] & UNICHAR( 10 ) &
+			"Gráficos de 12 meses (Receita, Markup, Custo/Competência, Resultado): " & [Rotulo_Janela_12M] & UNICHAR( 10 ) &
+			"Médias de 3, 6 e 12 meses e a coluna Ano contam a partir do último mês escolhido acima."
+		displayFolder: Relatorio
+		lineageTag: 50a874c6-2006-42b3-889e-0d42779aefb3
+
+	/// R01. Inicio sugerido do eixo Y (80% do menor valor da janela de 12 meses, arredondado para baixo em centenas de mil), para dar folga como no Excel.
+	measure Eixo12M_Receita_EixoMin =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _Base = CALCULATETABLE( DISTINCT( dEixoMes ), ALL( dEixoMes ) )
+			VAR _Janela = FILTER( _Base, dEixoMes[Eixo_Indice] > _Ref - 12 && dEixoMes[Eixo_Indice] <= _Ref )
+			VAR _ComReceita =
+			    ADDCOLUMNS(
+			        _Janela,
+			        "@Rec",
+			            VAR _m = dEixoMes[Eixo_Ano_Mes_Num]
+			            RETURN CALCULATE( [Receita_Operacional], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m )
+			    )
+			VAR _Min = MINX( _ComReceita, [@Rec] )
+			RETURN IF( NOT ISBLANK( _Min ), ROUNDDOWN( _Min * 0.8, -5 ) )
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 9f892622-fd94-4c2d-857a-85de832c354a
+
+	/// R04. Inicio sugerido do eixo Y (90% do menor markup da janela, 1 casa).
+	measure Eixo12M_Markup_EixoMin =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _Base = CALCULATETABLE( DISTINCT( dEixoMes ), ALL( dEixoMes ) )
+			VAR _Janela = FILTER( _Base, dEixoMes[Eixo_Indice] > _Ref - 12 && dEixoMes[Eixo_Indice] <= _Ref )
+			VAR _ComMk =
+			    ADDCOLUMNS(
+			        _Janela,
+			        "@Mk",
+			            VAR _m = dEixoMes[Eixo_Ano_Mes_Num]
+			            RETURN CALCULATE( [Markup_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m )
+			    )
+			VAR _Min = MINX( FILTER( _ComMk, NOT ISBLANK( [@Mk] ) ), [@Mk] )
+			RETURN IF( NOT ISBLANK( _Min ), ROUNDDOWN( _Min * 0.9, 1 ) )
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 2e642e1c-2d57-4743-b055-6fff0588a5a6
+
+	/// R04. Fim sugerido do eixo Y (110% do maior markup da janela, 1 casa), para o rotulo do ponto mais alto nao encostar na linha.
+	measure Eixo12M_Markup_EixoMax =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _Base = CALCULATETABLE( DISTINCT( dEixoMes ), ALL( dEixoMes ) )
+			VAR _Janela = FILTER( _Base, dEixoMes[Eixo_Indice] > _Ref - 12 && dEixoMes[Eixo_Indice] <= _Ref )
+			VAR _ComMk =
+			    ADDCOLUMNS(
+			        _Janela,
+			        "@Mk",
+			            VAR _m = dEixoMes[Eixo_Ano_Mes_Num]
+			            RETURN CALCULATE( [Markup_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m )
+			    )
+			VAR _Max = MAXX( FILTER( _ComMk, NOT ISBLANK( [@Mk] ) ), [@Mk] )
+			RETURN IF( NOT ISBLANK( _Max ), ROUNDUP( _Max * 1.1, 1 ) )
+		displayFolder: Relatorio\Eixo12M
+		lineageTag: 36c1672e-eb89-41f6-a0d2-0ffb03168a65
+
+	/// R02 (Pareto). Participacao do grupo (12 maiores clientes + Outros) na receita operacional do periodo selecionado.
+	measure Receita_Part_Cliente = DIVIDE( [Receita_Operacional], CALCULATE( [Receita_Operacional], ALLSELECTED( ControleFinanceiro[Cliente_Pareto], ControleFinanceiro[Cliente_Pareto_Ordem] ) ) )
+		formatString: 0.0%
+		displayFolder: Relatorio
+		lineageTag: 49974743-17f0-48d3-bf92-678fe30ce5f9
+
+	/// R02 (Pareto). Participacao acumulada por posicao (12 maiores clientes em ordem, Outros sempre por ultimo fechando em 100%).
+	measure Receita_Pareto_Acum =
+			VAR _MinhaOrdem = MIN( ControleFinanceiro[Cliente_Pareto_Ordem] )
+			VAR _Tab =
+			    ADDCOLUMNS(
+			        SUMMARIZE( ALLSELECTED( ControleFinanceiro ), ControleFinanceiro[Cliente_Pareto], ControleFinanceiro[Cliente_Pareto_Ordem] ),
+			        "@r", CALCULATE( [Receita_Operacional] )
+			    )
+			RETURN
+			    DIVIDE( SUMX( FILTER( _Tab, [Cliente_Pareto_Ordem] <= _MinhaOrdem ), [@r] ), SUMX( _Tab, [@r] ) )
+		formatString: 0%
+		displayFolder: Relatorio
+		lineageTag: 63688a72-2364-45a4-bec4-9471f6fd4b11
+
+	/// Variacao da Receita_Competencia do mes em contexto contra o mes anterior com competencia lancada (o mes anterior no calendario). Vazio se o mes nao tem competencia. Usada no texto do relatorio mensal (Python so formata).
+	measure Receita_Competencia_Var_MoM =
+			VAR _Cur = SELECTEDVALUE( dCalendario[Ano_Mês_Num] )
+			VAR _Ant =
+			    MAXX(
+			        FILTER( ALL( dCalendario[Ano_Mês_Num] ), dCalendario[Ano_Mês_Num] < _Cur ),
+			        dCalendario[Ano_Mês_Num]
+			    )
+			VAR _ValAnt =
+			    CALCULATE( [Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _Ant )
+			RETURN
+			    DIVIDE( [Receita_Competencia] - _ValAnt, _ValAnt )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: a24fe9b0-0399-450a-a650-5db121c0f81a
+
+	/// Receita por competencia de cada mes da janela de 12 meses (eixo dEixoMes) que termina no mes de referencia. Vazio fora da janela ou sem competencia lancada. Grafico G01 do relatorio mensal.
+	measure Eixo12M_Receita_Competencia =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref,
+			        CALCULATE( [Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 77b106a0-6608-444a-846a-67d4bd8acc15
+
+	/// Variacao da receita por competencia de cada mes da janela contra o mes anterior. Vazio se nao houver os dois meses. So o sinal define a cor do rotulo no G01.
+	measure Eixo12M_Receita_Competencia_MoM =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _Ant = MAXX( FILTER( ALL( dCalendario[Ano_Mês_Num] ), dCalendario[Ano_Mês_Num] < _M ), dCalendario[Ano_Mês_Num] )
+			VAR _Atual = CALCULATE( [Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M )
+			VAR _ValAnt = CALCULATE( [Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _Ant )
+			RETURN
+			    IF( _I > _Ref - 12 && _I <= _Ref, DIVIDE( _Atual - _ValAnt, _ValAnt ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 397c5932-14b6-436e-ae79-7a718d62136d
+
+	/// DFC: Entrada FFE menos Saida FFE (Detalhamento das categorias Entrada e Saida). Linha 'Fundo Financeiro Empresarial' da tabela DFC do relatorio. Junto com DFC_Aplicacao soma a linha 10 (Entrada/Saida) do Valor_DFC.
+	measure DFC_Fundo_Financeiro_Empresarial =
+			CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Entrada", ControleFinanceiro[Detalhamento/Categoria II] = "Entrada FFE" )
+			    - CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Saída", ControleFinanceiro[Detalhamento/Categoria II] = "Saída FFE" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 9af8dec2-2220-4a68-8b07-559dc3271979
+
+	/// DFC: tudo que e Entrada/Saida e NAO e Fundo Financeiro (Entrada/Saida de Conta, Lhoist, ajustes de saldo...). Total das categorias Entrada e Saida menos DFC_Fundo_Financeiro_Empresarial; as duas linhas sempre somam a linha 10 (Entrada/Saida) do Valor_DFC. Regra alterada em 02/10/2026 (antes so Detalhamento 'de Conta').
+	measure DFC_Aplicacao =
+			VAR _Total =
+			    CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Entrada" )
+			    - CALCULATE( SUM( ControleFinanceiro[Valor] ), ControleFinanceiro[Categoria] = "Saída" )
+			RETURN
+			    _Total - [DFC_Fundo_Financeiro_Empresarial]
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: c83ef270-bcd6-4edc-bd47-aec2fd3516b2
+
+	/// DRE (visao Standard): media dos ultimos 3 meses ate o mes em contexto. Tabela DRE Gerencial do relatorio.
+	measure DRE_3M_Media = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "Média 3M" )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: efad01b0-9011-45eb-a5c4-bfd3649a0667
+
+	/// DRE (visao Standard): percentual da media de 3 meses sobre a receita.
+	measure DRE_3M_Pct = CALCULATE( [Valor_DRE], 'Análise DRE'[Análise DRE] = "% 3M" )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: c43df606-284b-4d2f-92b1-584788ca7d67
+
+	/// Resultado acumulado desde janeiro do ano do mes de referencia, ate cada mes da janela (so meses do ano de referencia; vazio nos de anos anteriores). Linha do grafico G07.
+	measure Eixo12M_Resultado_Acum_Ano =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			VAR _Ref = YEAR( _RefData ) * 12 + MONTH( _RefData )
+			VAR _AnoRef = YEAR( _RefData )
+			VAR _I = SELECTEDVALUE( dEixoMes[Eixo_Indice] )
+			RETURN
+			    IF( _I > _AnoRef * 12 && _I <= _Ref,
+			        CALCULATE(
+			            [Resultado_Exercicio],
+			            REMOVEFILTERS( dCalendario ),
+			            FILTER( ALL( dCalendario[Ano], dCalendario[Mês_Num] ),
+			                VAR _k = dCalendario[Ano] * 12 + dCalendario[Mês_Num]
+			                RETURN _k > _AnoRef * 12 && _k <= _I )
+			        ) )
+		formatString: "R$" #,0.00;-"R$" #,0.00;"R$" #,0.00
+		displayFolder: Relatorio
+		lineageTag: 2040c10d-0285-4866-8500-fc0fe52d305e
+
+	/// Benchmark: % da receita (media de 6 meses) de Despesa Variavel + Despesa Financeira, em positivo. Mesma conta da aba Graficos da planilha (S8+S13).
+	measure Bench_VarFin_6M =
+			VAR _V = CALCULATE( [DRE_6M_Pct], TREATAS( { "Standard" }, dEstruturaDRE[Visão] ), TREATAS( { 7 }, dEstruturaDRE[ID] ) )
+			VAR _F = CALCULATE( [DRE_6M_Pct], TREATAS( { "Standard" }, dEstruturaDRE[Visão] ), TREATAS( { 12 }, dEstruturaDRE[ID] ) )
+			RETURN -( COALESCE( _V, 0 ) + COALESCE( _F, 0 ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 19273c77-b800-4385-a845-59f3d6a9c81d
+
+	/// Mes de referencia (AAAAMM) = ultimo mes com lancamento dentro do Periodo selecionado; ignora filtros de categoria, cozinha, cliente e conta (so o calendario conta). Sem selecao: ultimo mes com dados.
+	measure Painel_Mes_Ref =
+			VAR _d =
+			    CALCULATE(
+			        MAX( ControleFinanceiro[Realiz.] ),
+			        REMOVEFILTERS( ControleFinanceiro[C. C.] ),
+			        REMOVEFILTERS( ControleFinanceiro[  Fornecedor/ Cliente] ),
+			        REMOVEFILTERS( ControleFinanceiro[Descrição] ),
+			        REMOVEFILTERS( ControleFinanceiro[Detalhamento/Categoria II] ),
+			        REMOVEFILTERS( ControleFinanceiro[Grupo] ),
+			        REMOVEFILTERS( ControleFinanceiro[Categoria] ),
+			        REMOVEFILTERS( ControleFinanceiro[Conta] ),
+			        REMOVEFILTERS( ControleFinanceiro[Cliente_Pareto] ),
+			        REMOVEFILTERS( ControleFinanceiro[Cliente_Pareto_Ordem] )
+			    )
+			RETURN IF( NOT ISBLANK( _d ), YEAR( _d ) * 100 + MONTH( _d ) )
+		formatString: 0
+		isHidden
+		displayFolder: Painel
+		lineageTag: 9e2e5a28-1764-4a44-96d1-68c1cb757f59
+
+	/// Ultimo mes (AAAAMM) com receita por competencia lancada, ate o mes de referencia.
+	measure Painel_Mes_Ref_Comp =
+			VAR _Ref = [Painel_Mes_Ref]
+			RETURN
+			    MAXX(
+			        FILTER(
+			            ALL( Receita_Competencia_Manual ),
+			            YEAR( Receita_Competencia_Manual[Data_Competencia] ) * 100 + MONTH( Receita_Competencia_Manual[Data_Competencia] ) <= _Ref
+			                && Receita_Competencia_Manual[Valor_Competencia] > 0
+			        ),
+			        YEAR( Receita_Competencia_Manual[Data_Competencia] ) * 100 + MONTH( Receita_Competencia_Manual[Data_Competencia] )
+			    )
+		formatString: 0
+		isHidden
+		displayFolder: Painel
+		lineageTag: 59668547-ba0b-4687-8a7c-7433ad2eed7c
+
+	/// Carimbo do cabecalho: data do ultimo lancamento da planilha, sem filtros.
+	measure Txt_Dados_Ate = "Dados até " & FORMAT( CALCULATE( MAX( ControleFinanceiro[Realiz.] ), ALL( ControleFinanceiro ) ), "dd/mm/yyyy" )
+		displayFolder: Painel
+		lineageTag: f9211bed-257b-48b8-9762-2f745127ca5d
+
+	/// Subtitulo: mes de referencia (sem selecao) ou periodo selecionado.
+	measure Sub_Mes =
+			VAR _ini = [Painel_Mes_Ini]
+			VAR _fim = [Painel_Mes_Ref]
+			VAR _lblFim = LOOKUPVALUE( dCalendario[Ano_Mês], dCalendario[Ano_Mês_Num], _fim )
+			VAR _lblIni = LOOKUPVALUE( dCalendario[Ano_Mês], dCalendario[Ano_Mês_Num], _ini )
+			RETURN IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ) && _ini <> _fim, "Período: " & _lblIni & " a " & _lblFim, "Mês de referência: " & _lblFim )
+		displayFolder: Painel
+		lineageTag: c368394f-c91b-41e4-8b42-0ef367e3c62b
+
+	/// Subtitulo: periodo do acumulado do ano.
+	measure Sub_Acum_Ano =
+			VAR _Ref = [Painel_Mes_Ref]
+			RETURN "Acumulado do ano: Jan a " & LOOKUPVALUE( dCalendario[Ano_Mês], dCalendario[Ano_Mês_Num], _Ref )
+		displayFolder: Painel
+		lineageTag: b5c5cce7-c204-4056-8264-0d6d3784f412
+
+	/// Subtitulo: mes da ultima receita por competencia lancada.
+	measure Sub_Competencia = "Competência · " & LOOKUPVALUE( dCalendario[Ano_Mês], dCalendario[Ano_Mês_Num], [Painel_Mes_Ref_Comp] )
+		displayFolder: Painel
+		lineageTag: 768cdf42-4cae-4856-a552-5b4bc3634bee
+
+	/// Receita_Operacional do periodo selecionado; sem selecao, so do ultimo mes com dados.
+	measure Receita_Operacional_Mes =
+			IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			    [Receita_Operacional],
+			    VAR _m = [Painel_Mes_Ref]
+			    RETURN CALCULATE( [Receita_Operacional], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel
+		lineageTag: e7d36d5e-e888-4515-8472-37b14cf73cef
+
+	/// Resultado_Exercicio do periodo selecionado; sem selecao, so do ultimo mes com dados.
+	measure Resultado_Mes =
+			IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			    [Resultado_Exercicio],
+			    VAR _m = [Painel_Mes_Ref]
+			    RETURN CALCULATE( [Resultado_Exercicio], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel
+		lineageTag: ccb660c8-e93e-473c-bd59-fe93cfe44199
+
+	/// Resultado_Exercicio de janeiro do ano ate o mes de referencia.
+	measure Resultado_Acum_Ano_Mes =
+			VAR _m = [Painel_Mes_Ref]
+			VAR _ini = INT( _m / 100 ) * 100 + 1
+			RETURN CALCULATE( [Resultado_Exercicio], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] >= _ini, dCalendario[Ano_Mês_Num] <= _m )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel
+		lineageTag: 4455429d-9008-445d-bd51-cf668f800fa4
+
+	/// Markup por competencia do ultimo mes com competencia lancada (Excel Graficos!C28).
+	measure Markup_Competencia_Ult =
+			VAR _m = [Painel_Mes_Ref_Comp]
+			RETURN CALCULATE( [Markup_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m )
+		formatString: #,0.00"x";-#,0.00"x";0.00"x"
+		displayFolder: Painel
+		lineageTag: a478193e-573d-47e4-8c20-0902a57d0f9a
+
+	/// Verde se o resultado do mes e positivo, vermelho se negativo.
+	measure Cor_Resultado_Mes = IF( [Resultado_Mes] < 0, "#C62828", "#1E8E3E" )
+		displayFolder: Painel
+		lineageTag: 1ee508ba-efd1-4524-b41e-fd61e802f6ab
+
+	/// Verde se o resultado acumulado do ano e positivo, vermelho se negativo.
+	measure Cor_Resultado_Acum = IF( [Resultado_Acum_Ano_Mes] < 0, "#C62828", "#1E8E3E" )
+		displayFolder: Painel
+		lineageTag: f95554a0-45c1-4652-9464-ba11d35e9467
+
+	/// Grafico 5. Detalhamento Salarios (Despesa.com.Pessoal), positivo, nos 12 meses ate o mes de referencia. Mesma regra de Graficos!A73.
+	measure Eixo12M_Pessoal_Salarios =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( [Painel_Mostrar] = 1,
+			        CALCULATE( SUM( ControleFinanceiro[Valor] ), REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M,
+			            ControleFinanceiro[Categoria] = "Despesa.com.Pessoal", ControleFinanceiro[Detalhamento/Categoria II] = "Salários" ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 55c86e6d-d557-48a2-97ed-dadc8beefd02
+
+	/// Grafico 5. Encargos + Provisoes (Despesa.com.Pessoal), positivo, 12 meses. Mesma regra de Graficos!A74.
+	measure Eixo12M_Pessoal_Encargos =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( [Painel_Mostrar] = 1,
+			        CALCULATE( SUM( ControleFinanceiro[Valor] ), REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M,
+			            ControleFinanceiro[Categoria] = "Despesa.com.Pessoal", ControleFinanceiro[Detalhamento/Categoria II] IN { "Encargos", "Provisões" } ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 1ba34742-aa8f-42bd-823d-f7b4101a0b93
+
+	/// Grafico 5. Demais detalhamentos de Despesa.com.Pessoal (tudo menos Salarios, Encargos e Provisoes), positivo, 12 meses. Mesma regra de Graficos!A77.
+	measure Eixo12M_Pessoal_Outros =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN
+			    IF( [Painel_Mostrar] = 1,
+			        CALCULATE( SUM( ControleFinanceiro[Valor] ), REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M,
+			            ControleFinanceiro[Categoria] = "Despesa.com.Pessoal", NOT ( ControleFinanceiro[Detalhamento/Categoria II] IN { "Salários", "Encargos", "Provisões" } ) ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 67a50523-76b4-4cb7-be54-8d55801eff00
+
+	/// Grafico 9. Markup por competencia por mes: com Periodo selecionado, os meses selecionados ate o ultimo com competencia; sem selecao, de janeiro ao ultimo mes com competencia (Excel Graficos!C28:J28).
+	measure Eixo_Ano_Markup =
+			VAR _RefC = [Painel_Mes_Ref_Comp]
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _ok =
+			    IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			        _M IN VALUES( dCalendario[Ano_Mês_Num] ) && _M <= _RefC,
+			        _M >= INT( _RefC / 100 ) * 100 + 1 && _M <= _RefC )
+			RETURN IF( _ok, CALCULATE( [Markup_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: #,0.00"x";-#,0.00"x";0.00"x"
+		displayFolder: Painel\Eixo12M
+		lineageTag: e63b95a0-d202-4233-995d-663b7be1fbaa
+
+	/// Grafico 11. Custo operacional / receita por competencia por mes: com Periodo selecionado, os meses selecionados ate o ultimo com competencia; sem selecao, de janeiro ao ultimo mes com competencia (Excel Graficos!C25:J25).
+	measure Eixo_Ano_Custo_Competencia =
+			VAR _RefC = [Painel_Mes_Ref_Comp]
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _ok =
+			    IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			        _M IN VALUES( dCalendario[Ano_Mês_Num] ) && _M <= _RefC,
+			        _M >= INT( _RefC / 100 ) * 100 + 1 && _M <= _RefC )
+			RETURN IF( _ok, CALCULATE( [Custo_sobre_Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Painel\Eixo12M
+		lineageTag: 7f994c94-efc5-488f-8241-270975eb1d78
+
+	/// Primeiro mes (AAAAMM) com lancamento dentro do Periodo selecionado; ignora filtros de categoria, cozinha, cliente e conta.
+	measure Painel_Mes_Ini =
+			VAR _d =
+			    CALCULATE(
+			        MIN( ControleFinanceiro[Realiz.] ),
+			        REMOVEFILTERS( ControleFinanceiro[C. C.] ),
+			        REMOVEFILTERS( ControleFinanceiro[  Fornecedor/ Cliente] ),
+			        REMOVEFILTERS( ControleFinanceiro[Descrição] ),
+			        REMOVEFILTERS( ControleFinanceiro[Detalhamento/Categoria II] ),
+			        REMOVEFILTERS( ControleFinanceiro[Grupo] ),
+			        REMOVEFILTERS( ControleFinanceiro[Categoria] ),
+			        REMOVEFILTERS( ControleFinanceiro[Conta] ),
+			        REMOVEFILTERS( ControleFinanceiro[Cliente_Pareto] ),
+			        REMOVEFILTERS( ControleFinanceiro[Cliente_Pareto_Ordem] )
+			    )
+			RETURN IF( NOT ISBLANK( _d ), YEAR( _d ) * 100 + MONTH( _d ) )
+		formatString: 0
+		isHidden
+		displayFolder: Painel
+		lineageTag: 22ea639b-094e-41a1-b0ee-8e5f9870aa65
+
+	/// 1 se o mes do eixo (dEixoMes) deve aparecer nos graficos mensais: com Periodo selecionado, so os meses selecionados; sem selecao, os 12 meses ate o mes de referencia.
+	measure Painel_Mostrar =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _Mref = [Painel_Mes_Ref]
+			VAR _I = INT( _M / 100 ) * 12 + MOD( _M, 100 )
+			VAR _Ref = INT( _Mref / 100 ) * 12 + MOD( _Mref, 100 )
+			RETURN
+			    IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			        IF( _M IN VALUES( dCalendario[Ano_Mês_Num] ), 1 ),
+			        IF( _I > _Ref - 12 && _I <= _Ref, 1 ) )
+		formatString: 0
+		isHidden
+		displayFolder: Painel
+		lineageTag: a67ca9b0-fad5-4066-a9aa-063b2b414cf0
+
+	/// Receita_Operacional por mes do eixo, so nos meses a mostrar (Painel_Mostrar).
+	measure Painel_Receita_Eixo =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN IF( [Painel_Mostrar] = 1, CALCULATE( [Receita_Operacional], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 4fae3bd5-17bd-4400-97c8-c30b88442d8e
+
+	/// Receita por competencia por mes do eixo, so nos meses a mostrar (Painel_Mostrar). Vazio sem competencia lancada.
+	measure Painel_Receita_Comp_Eixo =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN IF( [Painel_Mostrar] = 1, CALCULATE( [Receita_Competencia], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 80b729b4-1852-44e1-ad5a-568a781d169d
+
+	/// Resultado_Exercicio por mes do eixo, so nos meses a mostrar (Painel_Mostrar).
+	measure Painel_Resultado_Eixo =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			RETURN IF( [Painel_Mostrar] = 1, CALCULATE( [Resultado_Exercicio], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _M ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 708a2d54-b351-43fb-8c29-fb1a98975cea
+
+	/// Resultado acumulado do ano (de janeiro ate cada mes do eixo), so nos meses a mostrar (Painel_Mostrar).
+	measure Painel_Resultado_Acum_Eixo =
+			VAR _M = SELECTEDVALUE( dEixoMes[Eixo_Ano_Mes_Num] )
+			VAR _ini = INT( _M / 100 ) * 100 + 1
+			RETURN IF( [Painel_Mostrar] = 1, CALCULATE( [Resultado_Exercicio], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] >= _ini, dCalendario[Ano_Mês_Num] <= _M ) )
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		displayFolder: Painel\Eixo12M
+		lineageTag: 47edf4a2-1415-4390-ad34-46c4ba33d45f
+
+	/// Pareto de clientes: % acumulado da receita (no periodo selecionado; sem selecao, no mes de referencia), do maior cliente para o menor.
+	measure Painel_Pareto_Acum =
+			VAR _mine = [Receita_Operacional_Mes]
+			VAR _tab = ADDCOLUMNS( ALLSELECTED( ControleFinanceiro[  Fornecedor/ Cliente] ), "@v", [Receita_Operacional_Mes] )
+			VAR _tot = SUMX( _tab, [@v] )
+			VAR _ac = SUMX( FILTER( _tab, [@v] >= _mine ), [@v] )
+			RETURN IF( NOT ISBLANK( _mine ), DIVIDE( _ac, _tot ) )
+		formatString: 0%
+		displayFolder: Painel
+		lineageTag: f6113965-719f-4518-a8e6-caf8c932b83f
+
+	column 'C. C.'
+		dataType: string
+		lineageTag: d9bf8c08-09e8-417f-9c2e-735c4adde6b5
+		summarizeBy: none
+		sourceColumn: C. C.
+
+		annotation SummarizationSetBy = Automatic
+
+	column '  Fornecedor/ Cliente'
+		dataType: string
+		lineageTag: 353ad593-78ac-4ab1-9d58-4dba2b998718
+		summarizeBy: none
+		sourceColumn: "  Fornecedor/ Cliente"
+
+		annotation SummarizationSetBy = Automatic
+
+	column Descrição
+		dataType: string
+		lineageTag: 86f4287f-adec-4fd3-b52b-b2fdea7bad0d
+		summarizeBy: none
+		sourceColumn: Descrição
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Detalhamento/Categoria II'
+		dataType: string
+		lineageTag: 49161581-f0e6-454e-8f9f-36cb215980f2
+		summarizeBy: none
+		sourceColumn: Detalhamento/Categoria II
+
+		annotation SummarizationSetBy = Automatic
+
+	column Grupo
+		dataType: string
+		lineageTag: f3154fba-9670-4eba-858a-fd17a8c43c13
+		summarizeBy: none
+		sourceColumn: Grupo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 06b2d8f2-8db5-461c-80ee-3bf13c66460c
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Conta
+		dataType: string
+		lineageTag: 22b5c26b-cf67-4cd3-a661-ea4338374bb4
+		summarizeBy: none
+		sourceColumn: Conta
+
+		annotation SummarizationSetBy = Automatic
+
+	column Valor
+		dataType: double
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 2ea17c8a-9c8f-48e2-a97c-8399805dc9b8
+		summarizeBy: sum
+		sourceColumn: Valor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Saldo
+		dataType: double
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 29619513-f2ec-4ffc-a955-1d4b63d550dc
+		summarizeBy: sum
+		sourceColumn: Saldo
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Mês_Num
+		dataType: int64
+		formatString: 0
+		lineageTag: 340e35bb-1441-4d9f-89c9-53597b0468fe
+		summarizeBy: sum
+		sourceColumn: Mês_Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês_Nome
+		dataType: string
+		lineageTag: 541c3eff-ce39-4798-bd99-923353ecd1b3
+		summarizeBy: none
+		sourceColumn: Mês_Nome
+		sortByColumn: Mês_Num
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Realiz.'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: a86eb7d5-f017-4f84-a6e0-3a886c988d47
+		summarizeBy: none
+		sourceColumn: Realiz.
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Posicao do cliente entre os 12 maiores da RECEITA DO ANO do proprio lancamento (999 = Outros). Ranking por ano desde 02/10/2026 (antes era sobre todos os dados).
+	column Cliente_Pareto_Ordem =
+			VAR _Cliente = ControleFinanceiro[  Fornecedor/ Cliente]
+			VAR _Ano = YEAR( ControleFinanceiro[Realiz.] )
+			VAR _MeuRec = CALCULATE( [Receita_Operacional], ALLEXCEPT( ControleFinanceiro, ControleFinanceiro[  Fornecedor/ Cliente] ), YEAR( ControleFinanceiro[Realiz.] ) = _Ano )
+			VAR _TabClientes =
+			    ADDCOLUMNS(
+			        VALUES( ControleFinanceiro[  Fornecedor/ Cliente] ),
+			        "@Rec", CALCULATE( [Receita_Operacional], ALLEXCEPT( ControleFinanceiro, ControleFinanceiro[  Fornecedor/ Cliente] ), YEAR( ControleFinanceiro[Realiz.] ) = _Ano )
+			    )
+			VAR _Rank = RANKX( _TabClientes, [@Rec], _MeuRec, DESC, Dense )
+			RETURN IF( _Rank <= 12 && NOT ISBLANK( _MeuRec ) && _MeuRec > 0, _Rank, 999 )
+		dataType: int64
+		isHidden
+		lineageTag: 0955505c-4d4f-42be-875e-5f720791280e
+
+	/// R02 Pareto. Nome do cliente para os 12 maiores do ano; 'Outros' para o resto (ordenado sempre por ultimo).
+	column Cliente_Pareto = IF( ControleFinanceiro[Cliente_Pareto_Ordem] = 999, "Outros", ControleFinanceiro[  Fornecedor/ Cliente] )
+		dataType: string
+		lineageTag: 36c820c1-b4a2-4ff0-900b-912e2704b662
+		sortByColumn: Cliente_Pareto_Ordem
+
+	partition ControleFinanceiro = m
+		mode: import
+		source =
+				// Consulta ControleFinanceiro (padrão do kit, 19/10/2026). Junta o cliente A (15-16/10: pasta local, .xlsx e .xlsm) e a cliente B (16/10: coluna Origem).
+				// Lê TODOS os "Controle Financeiro AAAA.xlsx/.xlsm" da pasta do painel: o arquivo do ano novo entra sozinho, sem login nem nível de privacidade.
+				// ATENÇÃO: um arquivo por ano. Se houver o .xlsx e o .xlsm do mesmo ano (ou uma cópia de conflito do OneDrive), as linhas entram duas vezes.
+				let
+				    // Pasta do painel neste computador. O gerador de relatório troca o valor de PastaLocal a cada execução (bi_conexao.definir_pasta_local); mantenha esta linha como está.
+				    PastaLocal = "C:\caminho\da\pasta\00_Painel BI",
+				    Arquivos = Table.Sort(Table.SelectRows(Folder.Contents(PastaLocal), each List.Contains({".xlsx", ".xlsm"}, Text.Lower([Extension])) and Text.StartsWith([Name], "Controle Financeiro 20") and not Text.StartsWith([Name], "~$")), {{"Name", Order.Ascending}}),
+				    Fontes = List.Transform(Arquivos[Content], each Excel.Workbook(_, null, true)),
+				    Tabela = Table.Combine(List.Transform(Fontes, each _{[Item="ControleFinanceiro",Kind="Table"]}[Data])),
+				    // Origem: só existe na planilha agregada (arquitetura "agregada"); na direta vira coluna vazia, para o modelo ser o mesmo.
+				    ComOrigem = if Table.HasColumns(Tabela, "Origem") then Tabela else Table.AddColumn(Tabela, "Origem", each null, type text),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(ComOrigem,{{"Realiz.", type date}, {"Venc.", type date}, {"C. C.", type text}, {"  Fornecedor/ Cliente", type text}, {"Descrição", type text}, {"Detalhamento/Categoria II", type text}, {"Tipo", type text}, {"Categoria", type text}, {"Desembolso", type text}, {"Conta", type text}, {"Valor", type number}, {"Saldo", type number}, {"Comentários", type any}, {"Origem", type text}}),
+				    #"Mês Inserido" = Table.AddColumn(#"Tipo Alterado", "Mês_Num", each Date.Month([#"Realiz."]), Int64.Type),
+				    #"Nome do Mês Inserido" = Table.AddColumn(#"Mês Inserido", "Mês_Nome", each Date.MonthName([#"Realiz."]), type text),
+				    #"Colunas Reordenadas" = Table.ReorderColumns(#"Nome do Mês Inserido",{"Realiz.", "Mês_Num", "Mês_Nome", "Venc.", "C. C.", "  Fornecedor/ Cliente", "Descrição", "Detalhamento/Categoria II", "Tipo", "Categoria", "Desembolso", "Conta", "Valor", "Saldo", "Comentários", "Origem"}),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Colunas Reordenadas",{{"Tipo", "Grupo"}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Colunas Renomeadas",{"Desembolso", "Comentários", "Venc."}, MissingField.Ignore)
+				in
+				    #"Colunas Removidas"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navegação
+

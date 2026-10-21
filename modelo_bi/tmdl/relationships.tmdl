@@ -1,0 +1,13 @@
+relationship 7142998c-006a-4037-afb7-65c38bf8d309
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Receita_Competencia_Manual.Data_Competencia
+	toColumn: LocalDateTable_cadeff0f-fb67-4213-a59c-797c86f37cb0.Date
+
+relationship 31d0bb2f-6a15-38b3-e273-65c873c44998
+	fromColumn: ControleFinanceiro.'Realiz.'
+	toColumn: dCalendario.Date
+
+relationship 'ControleFinanceiro_Detalhamento/Categoria II_dGrupoPessoal_Detalhamento'
+	fromColumn: ControleFinanceiro.'Detalhamento/Categoria II'
+	toColumn: dGrupoPessoal.Detalhamento
+

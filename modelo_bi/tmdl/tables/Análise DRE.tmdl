@@ -1,0 +1,183 @@
+table 'Análise DRE'
+	lineageTag: 9508891e-be2e-47b8-a3b3-e071ca978c31
+
+	/// Meses, análise vertical e médias móveis como itens. Substitui as 24 medidas mensais e as de AV/média.
+	calculationGroup
+		precedence: 1
+
+		calculationItem Total = SELECTEDMEASURE()
+
+		calculationItem Jan =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 1, dCalendario[Ano] = _Ano )
+
+		calculationItem Fev =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 2, dCalendario[Ano] = _Ano )
+
+		calculationItem Mar =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 3, dCalendario[Ano] = _Ano )
+
+		calculationItem Abr =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 4, dCalendario[Ano] = _Ano )
+
+		calculationItem Mai =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 5, dCalendario[Ano] = _Ano )
+
+		calculationItem Jun =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 6, dCalendario[Ano] = _Ano )
+
+		calculationItem Jul =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 7, dCalendario[Ano] = _Ano )
+
+		calculationItem Ago =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 8, dCalendario[Ano] = _Ano )
+
+		calculationItem Set =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 9, dCalendario[Ano] = _Ano )
+
+		calculationItem Out =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 10, dCalendario[Ano] = _Ano )
+
+		calculationItem Nov =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 11, dCalendario[Ano] = _Ano )
+
+		calculationItem Dez =
+				VAR _Ano = YEAR( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN CALCULATE( SELECTEDMEASURE(), dCalendario[Mês_Num] = 12, dCalendario[Ano] = _Ano )
+
+		calculationItem % =
+				VAR _Visao = SELECTEDVALUE( dEstruturaDRE[Visão] )
+				VAR _Base =
+				    CALCULATE(
+				        SELECTEDMEASURE(),
+				        REMOVEFILTERS( dEstruturaDRE ),
+				        dEstruturaDRE[Visão] = _Visao,
+				        dEstruturaDRE[ID] = 1
+				    )
+				RETURN DIVIDE( SELECTEDMEASURE(), _Base, 0 )
+
+			formatStringDefinition = "0.00%;-0.00%;0.00%"
+
+		calculationItem 'Média 3M' =
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				RETURN
+				CALCULATE(
+				    DIVIDE(
+				        SUMX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        COUNTROWS( VALUES( dCalendario[Ano_Mês_Num] ) )
+				    ),
+				    DATESINPERIOD( dCalendario[Date], _DataMax, -3, MONTH )
+				)
+
+		calculationItem '% 3M' =
+				VAR _Visao = SELECTEDVALUE( dEstruturaDRE[Visão] )
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				VAR _Med =
+				    CALCULATE(
+				        AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        DATESINPERIOD( dCalendario[Date], _DataMax, -3, MONTH )
+				    )
+				VAR _Base =
+				    CALCULATE(
+				        CALCULATE(
+				            AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				            DATESINPERIOD( dCalendario[Date], _DataMax, -3, MONTH )
+				        ),
+				        REMOVEFILTERS( dEstruturaDRE ),
+				        dEstruturaDRE[Visão] = _Visao,
+				        dEstruturaDRE[ID] = 1
+				    )
+				RETURN DIVIDE( _Med, _Base, 0 )
+
+			formatStringDefinition = "0.00%;-0.00%;0.00%"
+
+		calculationItem 'Média 6M' =
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				RETURN
+				CALCULATE(
+				    DIVIDE(
+				        SUMX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        COUNTROWS( VALUES( dCalendario[Ano_Mês_Num] ) )
+				    ),
+				    DATESINPERIOD( dCalendario[Date], _DataMax, -6, MONTH )
+				)
+
+		calculationItem '% 6M' =
+				VAR _Visao = SELECTEDVALUE( dEstruturaDRE[Visão] )
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				VAR _Med =
+				    CALCULATE(
+				        AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        DATESINPERIOD( dCalendario[Date], _DataMax, -6, MONTH )
+				    )
+				VAR _Base =
+				    CALCULATE(
+				        CALCULATE(
+				            AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				            DATESINPERIOD( dCalendario[Date], _DataMax, -6, MONTH )
+				        ),
+				        REMOVEFILTERS( dEstruturaDRE ),
+				        dEstruturaDRE[Visão] = _Visao,
+				        dEstruturaDRE[ID] = 1
+				    )
+				RETURN DIVIDE( _Med, _Base, 0 )
+
+			formatStringDefinition = "0.00%;-0.00%;0.00%"
+
+		calculationItem 'Média 12M' =
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				RETURN
+				CALCULATE(
+				    DIVIDE(
+				        SUMX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        COUNTROWS( VALUES( dCalendario[Ano_Mês_Num] ) )
+				    ),
+				    DATESINPERIOD( dCalendario[Date], _DataMax, -12, MONTH )
+				)
+
+		calculationItem '% 12M' =
+				VAR _Visao = SELECTEDVALUE( dEstruturaDRE[Visão] )
+				VAR _DataMax = MAX( ControleFinanceiro[Realiz.] )
+				VAR _Med =
+				    CALCULATE(
+				        AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				        DATESINPERIOD( dCalendario[Date], _DataMax, -12, MONTH )
+				    )
+				VAR _Base =
+				    CALCULATE(
+				        CALCULATE(
+				            AVERAGEX( VALUES( dCalendario[Ano_Mês_Num] ), CALCULATE( SELECTEDMEASURE() ) ),
+				            DATESINPERIOD( dCalendario[Date], _DataMax, -12, MONTH )
+				        ),
+				        REMOVEFILTERS( dEstruturaDRE ),
+				        dEstruturaDRE[Visão] = _Visao,
+				        dEstruturaDRE[ID] = 1
+				    )
+				RETURN DIVIDE( _Med, _Base, 0 )
+
+			formatStringDefinition = "0.00%;-0.00%;0.00%"
+
+	column 'Análise DRE'
+		dataType: string
+		lineageTag: 6ffb0cbe-1981-4b97-8a65-7610d9b4e091
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		lineageTag: 9972e218-077c-4957-8414-735062b4f8f4
+		sourceColumn: Ordinal
+
+	partition 'Partition_Análise DRE' = calculationGroup
+

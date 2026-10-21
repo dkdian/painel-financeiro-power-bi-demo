@@ -1,0 +1,39 @@
+/// Eixo desconectado dos graficos de 12 meses das paginas R (R01, R04, R06, R07). Sem relacao: a segmentacao de dCalendario escolhe o mes de referencia e as medidas Eixo12M_* mostram os 12 meses que terminam nele. Vai do 1o ao ultimo mes com lancamento.
+table dEixoMes
+	lineageTag: a0da5b1a-0838-4477-81b4-1a4821b30148
+
+	column Eixo_Ano_Mes_Num
+		lineageTag: 55ca7071-0687-4142-8e3d-0cb988b4cd41
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Eixo_Ano_Mes_Num]
+
+	column Eixo_Mes
+		lineageTag: d767ea01-4cfa-45bf-bd4e-da60448aa5e6
+		isNameInferred
+		sourceColumn: [Eixo_Mes]
+		sortByColumn: Eixo_Ano_Mes_Num
+
+	column Eixo_Indice
+		isHidden
+		lineageTag: 8987f929-a06a-4085-b2b4-10debf1fbc01
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Eixo_Indice]
+
+	partition dEixoMes = calculated
+		mode: import
+		source =
+				VAR _Ini = YEAR( MIN( ControleFinanceiro[Realiz.] ) ) * 100 + MONTH( MIN( ControleFinanceiro[Realiz.] ) )
+				VAR _Fim = YEAR( MAX( ControleFinanceiro[Realiz.] ) ) * 100 + MONTH( MAX( ControleFinanceiro[Realiz.] ) )
+				RETURN
+				    SELECTCOLUMNS(
+				        FILTER(
+				            SUMMARIZE( dCalendario, dCalendario[Ano_Mês_Num], dCalendario[Ano_Mês], dCalendario[Ano], dCalendario[Mês_Num] ),
+				            dCalendario[Ano_Mês_Num] >= _Ini && dCalendario[Ano_Mês_Num] <= _Fim
+				        ),
+				        "Eixo_Ano_Mes_Num", dCalendario[Ano_Mês_Num],
+				        "Eixo_Mes", dCalendario[Ano_Mês],
+				        "Eixo_Indice", dCalendario[Ano] * 12 + dCalendario[Mês_Num]
+				    )
+

@@ -1,0 +1,70 @@
+/// Colunas da matriz DRE: um mês por coluna (do primeiro ao último mês com dados) + Total, % e médias. Tabela desconectada; a medida DRE_Valor_Coluna calcula cada coluna.
+table dColunasDRE
+	lineageTag: d70d3f9b-3e88-4122-91ea-ee77ba9706d7
+
+	column Coluna
+		lineageTag: 2d517cc1-7579-4e24-9051-4854a20646b2
+		isNameInferred
+		sourceColumn: [Coluna]
+		sortByColumn: Ordem
+
+	column Ordem
+		isHidden
+		lineageTag: 98697a1e-7984-4703-9a31-6c3a997e2bbd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ordem]
+
+	column Tipo
+		isHidden
+		lineageTag: 80db83f1-c30f-405b-923c-50c6ea2aaa4a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tipo]
+
+	column AnoMes
+		isHidden
+		lineageTag: b43d281d-96a5-4297-a3bf-03159368403d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [AnoMes]
+
+	partition dColunasDRE = calculated
+		mode: import
+		source =
+				VAR _ini = MIN ( ControleFinanceiro[Realiz.] )
+				VAR _fim = MAX ( ControleFinanceiro[Realiz.] )
+				VAR _meses =
+				    SUMMARIZE (
+				        FILTER ( dCalendario, dCalendario[Date] >= _ini && dCalendario[Date] <= _fim ),
+				        dCalendario[Ano_Mês_Num],
+				        dCalendario[Ano_Mês]
+				    )
+				VAR _m =
+				    SELECTCOLUMNS (
+				        _meses,
+				        "Coluna", dCalendario[Ano_Mês],
+				        "Ordem", dCalendario[Ano_Mês_Num],
+				        "Tipo", "Mês",
+				        "AnoMes", dCalendario[Ano_Mês_Num]
+				    )
+				VAR _x =
+				    DATATABLE (
+				        "Coluna", STRING,
+				        "Ordem", INTEGER,
+				        "Tipo", STRING,
+				        "AnoMes", INTEGER,
+				        {
+				            { "Total", 0, "Calc", 0 },
+				            { "%", 999001, "Calc", 0 },
+				            { "Média 3M", 999002, "Calc", 0 },
+				            { "% 3M", 999003, "Calc", 0 },
+				            { "Média 6M", 999004, "Calc", 0 },
+				            { "% 6M", 999005, "Calc", 0 },
+				            { "Média 12M", 999006, "Calc", 0 },
+				            { "% 12M", 999007, "Calc", 0 }
+				        }
+				    )
+				RETURN
+				    UNION ( _m, _x )
+

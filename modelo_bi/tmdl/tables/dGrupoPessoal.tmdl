@@ -1,0 +1,37 @@
+/// Mapeamento Detalhamento/Categoria II de Despesa.com.Pessoal para grupo (Salários, Encargos, Outros). Decisão D3. Subcategoria nova sem linha aqui cai em Outros (residual) e gera alerta via Pessoal_Nao_Mapeado.
+table dGrupoPessoal
+	lineageTag: 1d8468e9-a02b-4101-a20a-33aa747b0e2b
+
+	column Detalhamento
+		lineageTag: c4724e08-a730-49ac-ae64-9a407f7a9645
+		isNameInferred
+		sourceColumn: [Detalhamento]
+
+	column Grupo
+		lineageTag: 1c96a133-4691-4e24-b1aa-650ad7f894af
+		isNameInferred
+		sourceColumn: [Grupo]
+
+	partition dGrupoPessoal = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Detalhamento", STRING,
+				    "Grupo", STRING,
+				    {
+				        { "Salários", "Salários" },
+				        { "Bonificações", "Salários" },
+				        { "Encargos", "Encargos" },
+				        { "Provisões", "Encargos" },
+				        { "Ajuda de Custo", "Outros" },
+				        { "Endomarketing", "Outros" },
+				        { "Medicina do Trabalho", "Outros" },
+				        { "Outros Pessoal", "Outros" },
+				        { "Planos e Benefícios", "Outros" },
+				        { "Recrutamento e Seleção", "Outros" },
+				        { "Ticket", "Outros" },
+				        { "Treinamentos", "Outros" },
+				        { "Processos Trabalhistas", "Outros" }
+				    }
+				)
+

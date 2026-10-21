@@ -1,0 +1,96 @@
+table dCalendario
+	lineageTag: e448572f-98b9-4636-a78d-9327c5d1d8bd
+	dataCategory: Time
+
+	column Date
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: 484ba2d0-1cf0-4464-a147-383f7e1cec51
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano
+		formatString: 0
+		lineageTag: 73a68485-5c02-445e-9abc-f32c9210b507
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Ano]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês_Num
+		formatString: 0
+		lineageTag: 9c7147ac-397b-43d2-9d17-9d2265448b35
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Mês_Num]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês_Nome
+		lineageTag: 78e9c67a-437a-444b-95f7-ec00564d8768
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês_Nome]
+		sortByColumn: Mês_Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano_Mês
+		lineageTag: 6eafcea1-bb53-49e2-8fe1-cd8276bb47c5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano_Mês]
+		sortByColumn: Ano_Mês_Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano_Mês_Num
+		formatString: 0
+		lineageTag: e258c1ed-4ce2-4555-8c60-30ac628b42f0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Ano_Mês_Num]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trimestre
+		lineageTag: ec0da9c1-972c-428b-810c-8b778bdf36ce
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Trimestre]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes_Com_Dados =
+			VAR _AnoMes = dCalendario[Ano_Mês_Num]
+			RETURN
+			    IF(
+			        CALCULATE(
+			            COUNTROWS( ControleFinanceiro ),
+			            FILTER( ALL( ControleFinanceiro ), YEAR( ControleFinanceiro[Realiz.] ) * 100 + MONTH( ControleFinanceiro[Realiz.] ) = _AnoMes )
+			        ) > 0,
+			        "Sim", "Não"
+			    )
+		dataType: string
+		isHidden
+		lineageTag: fc444780-9fc4-47f2-a388-714be45b6f34
+
+	partition dCalendario = calculated
+		mode: import
+		source =
+				ADDCOLUMNS(
+				    CALENDAR( DATE( 2025, 1, 1 ), DATE( MAX( YEAR( MAX( ControleFinanceiro[Realiz.] ) ), 2026 ), 12, 31 ) ),
+				    "Ano", YEAR( [Date] ),
+				    "Mês_Num", MONTH( [Date] ),
+				    "Mês_Nome", UPPER( LEFT( FORMAT( [Date], "mmm" ), 1 ) ) & MID( FORMAT( [Date], "mmm" ), 2, 2 ),
+				    "Ano_Mês", UPPER( LEFT( FORMAT( [Date], "mmm" ), 1 ) ) & MID( FORMAT( [Date], "mmm/yy" ), 2, 10 ),
+				    "Ano_Mês_Num", YEAR( [Date] ) * 100 + MONTH( [Date] ),
+				    "Trimestre", "T" & FORMAT( [Date], "q" )
+				)
+
+	annotation PBI_Id = c52900423e3f4107af3671e24972b125
+

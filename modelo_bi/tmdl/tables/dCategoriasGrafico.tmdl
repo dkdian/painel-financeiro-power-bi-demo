@@ -1,0 +1,90 @@
+table dCategoriasGrafico
+	lineageTag: 73ed17de-2f9d-4810-8a2c-d5af50060cf9
+
+	measure Plot_GastoVsReceita = ```
+			
+			VAR CategoriaSelecionada = SELECTEDVALUE(dCategoriasGrafico[Categoria_Graf])
+			VAR ReceitaBase = [Receita_Operacional]
+			
+			VAR ValorFatia = 
+			    SWITCH(
+			        CategoriaSelecionada,
+			        "(-) Custo Operacional", ABS([Custo_Operacional]),
+			        "(-) Despesa com Pessoal", ABS([Despesa_Pessoal]),
+			        "(-) Despesa Fixa", ABS([Despesa_Fixa]),
+			        "(-) Tributo", ABS([Tributo]),
+			        "(-) Despesa Variável", ABS([Despesa_Variavel]),
+			        "(-) Marketing/Comercial", ABS([Marketing_Comercial]),
+			        "(-) Despesa Financeira", ABS([Despesa_Financeira]),
+			        -- Como na pizza do Excel: prejuízo aparece como fatia (valor absoluto);
+			        -- o sinal negativo vai no rótulo, pela expressão de formato.
+			        "Resultado", ABS([Resultado_Exercicio]),
+			        BLANK()
+			    )
+			
+			RETURN 
+			    DIVIDE(ValorFatia, ReceitaBase, 0)
+			```
+		lineageTag: 78e0a5b1-83fd-4998-a038-c52aad078d76
+
+		formatStringDefinition =
+				IF(
+				    SELECTEDVALUE( dCategoriasGrafico[Categoria_Graf] ) = "Resultado" && [Resultado_Exercicio] < 0,
+				    "-0.00%",
+				    "0.00%;-0.00%;0.00%"
+				)
+
+	/// G08. Plot_GastoVsReceita do ano ate o mes mais recente com lancamento (nunca DATESYTD puro).
+	measure Plot_GastoVsReceita_Ano =
+			VAR _RefData = MAX( ControleFinanceiro[Realiz.] )
+			RETURN
+			    CALCULATE(
+			        [Plot_GastoVsReceita],
+			        DATESBETWEEN( dCalendario[Date], DATE( YEAR( _RefData ), 1, 1 ), _RefData )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Relatorio
+		lineageTag: 0586eb77-87dc-4afd-a270-c945cf6483cb
+
+	/// Plot_GastoVsReceita do periodo selecionado; sem selecao, so do ultimo mes com dados (Excel Graficos!I30:I37).
+	measure Plot_GastoVsReceita_Mes =
+			IF( ISCROSSFILTERED( dCalendario[Ano_Mês_Num] ),
+			    [Plot_GastoVsReceita],
+			    VAR _m = [Painel_Mes_Ref]
+			    RETURN CALCULATE( [Plot_GastoVsReceita], REMOVEFILTERS( dCalendario ), dCalendario[Ano_Mês_Num] = _m ) )
+		displayFolder: Painel
+		lineageTag: f8da1406-5e9c-4bcd-9438-6c7660d959c6
+
+		formatStringDefinition = IF( SELECTEDVALUE( dCategoriasGrafico[Categoria_Graf] ) = "Resultado" && [Resultado_Mes] < 0, "-0.00%", "0.00%;-0.00%;0.00%" )
+
+	column ID_Graf
+		dataType: int64
+		formatString: 0
+		lineageTag: ed014156-17c9-46a7-87c7-a48e7bcc1177
+		summarizeBy: sum
+		sourceColumn: ID_Graf
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria_Graf
+		dataType: string
+		lineageTag: ff0e012f-ef4d-4590-a881-fb5249dbd084
+		summarizeBy: none
+		sourceColumn: Categoria_Graf
+		sortByColumn: ID_Graf
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dCategoriasGrafico = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("Zc1NCsJADIbhqwyzUqiI/+4r7kQRcTN0EccgwXZSkql4Hc/ixSztrOo2T/he5+zMZnY0GZu80cjmWKOAJw5Q2iJzdp50h1qjgvFcmROqcvLFwPf0hg6WCS5CtyZyd1sNnq8g9P28sJ9aJz2APDFSeExzrlA8pdTmLxUgeCTpg9uWz6hNGeHe5oof", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [ID_Graf = _t, Categoria_Graf = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"ID_Graf", Int64.Type}, {"Categoria_Graf", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+

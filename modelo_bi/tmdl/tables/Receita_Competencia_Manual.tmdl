@@ -1,0 +1,51 @@
+table Receita_Competencia_Manual
+	lineageTag: 1295c5ea-5aab-438d-9948-728ef6e5ff68
+
+	column Data_Competencia
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: d504d391-96d0-41bb-ae19-2fddc38e09d1
+		summarizeBy: none
+		sourceColumn: Data_Competencia
+
+		variation Variation
+			isDefault
+			relationship: 7142998c-006a-4037-afb7-65c38bf8d309
+			defaultHierarchy: LocalDateTable_cadeff0f-fb67-4213-a59c-797c86f37cb0.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Valor_Competencia
+		dataType: double
+		formatString: "R$"\ #,0.00;-"R$"\ #,0.00;"R$"\ #,0.00
+		lineageTag: 62d1764e-f23b-4608-8f88-d021fad640b6
+		summarizeBy: sum
+		sourceColumn: Valor_Competencia
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Receita_Competencia_Manual = m
+		mode: import
+		source =
+				// Consulta Receita_Competencia_Manual (padrão do kit, 19/10/2026; vem do cliente A, 15/10/2026). Só se o cliente usa competência (TEM_COMPETENCIA).
+				// Tabela tbCompetencia (aba Competencia: Mês = dia 1 do mês, Valor) de todos os arquivos da pasta. Arquivo sem a tabela é ignorado.
+				let
+				    // Pasta do painel neste computador. O gerador de relatório troca o valor de PastaLocal a cada execução (bi_conexao.definir_pasta_local); mantenha esta linha como está.
+				    PastaLocal = "C:\caminho\da\pasta\00_Painel BI",
+				    Arquivos = Table.Sort(Table.SelectRows(Folder.Contents(PastaLocal), each List.Contains({".xlsx", ".xlsm"}, Text.Lower([Extension])) and Text.StartsWith([Name], "Controle Financeiro 20") and not Text.StartsWith([Name], "~$")), {{"Name", Order.Ascending}}),
+				    Fontes = List.Transform(Arquivos[Content], each Excel.Workbook(_, null, true)),
+				    ComTabela = List.Select(Fontes, each Table.RowCount(Table.SelectRows(_, each [Item] = "tbCompetencia" and [Kind] = "Table")) > 0),
+				    Competencia_Table = Table.Combine(List.Transform(ComTabela, each _{[Item="tbCompetencia",Kind="Table"]}[Data])),
+				    #"Colunas Renomeadas" = Table.RenameColumns(Competencia_Table,{{"Mês", "Data_Competencia"}, {"Valor", "Valor_Competencia"}}),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Renomeadas",{{"Data_Competencia", type date}, {"Valor_Competencia", type number}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+
